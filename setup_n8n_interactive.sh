@@ -10,14 +10,11 @@ prompt() {
   local default="${1-}"
   local secret="${2-false}"
 
-  if [ "$secret" = "true" ]; then
-    while true; do
-      read -s -p "$question [$default]: " val
-      echo
-      val="${val:-$default}"
-      [ -n "$val" ] && { eval "$varname=\"\$val\""; break; }
-      echo "Value cannot be empty."
-    done
+   if [ "$secret" = "true" ]; then
+    read -s -p "$question [$default]: " val
+    echo
+    val="${val:-$default}"   # اجازه به خالی
+    eval "$varname=\"\$val\""
   else
     read -p "$question [$default]: " val
     val="${val:-$default}"
