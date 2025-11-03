@@ -23,9 +23,15 @@ prompt() {
 }
 
 confirm() {
-  read -p "$1 [y/N]: " yn
-  case "$yn" in [Yy]* ) return 0 ;; * ) return 1 ;; esac
+  local prompt_text="$1"
+  read -p "$prompt_text [Y/n]: " yn
+  yn="${yn:-Y}"
+  case "$yn" in
+    [Yy]* ) return 0 ;;
+    * ) return 1 ;;
+  esac
 }
+
 
 echo "=== n8n + Traefik interactive installer ==="
 [ "$(id -u)" -ne 0 ] && { echo "Please run as root (sudo)."; exit 1; }
@@ -160,13 +166,24 @@ docker compose pull || true
 docker compose up -d
 
 echo
-echo "Installation complete."
-docker compose ps
+echo "============================================================"
+echo "✅ Installation completed successfully!"
 echo
-echo "Check certificate logs:"
+echo "Your n8n panel is available at:"
+LINK="https://$DOMAIN"
+echo "👉  $LINK"
+echo
+
+# Try to open automatically if possible
+if command -v xdg-open >/dev/null 2>&1; then
+  xdg-open "$LINK" >/dev/null 2>&1 && echo "(Opened in your default browser!)"
+elif command -v open >/dev/null 2>&1; then
+  open "$LINK" >/dev/null 2>&1 && echo "(Opened in your default browser!)"
+else
+  echo "Note: Open the above link manually in your browser."
+fi
+
+echo
+echo "To check SSL certificate logs, run:"
 echo "  docker compose logs --tail=200 traefik | egrep -i 'acme|certificate|challenge|myresolver'"
-echo
-echo "Then open:  https://$DOMAIN"
-echo "If using Cloudflare, make sure the DNS record for '$DOMAIN' is DNS-only (gray cloud) during certificate issuance."
-echo
-echo "Keep this encryption key safe.  Losing it means you can't decrypt stored credentials."
+echo "============================================================"
