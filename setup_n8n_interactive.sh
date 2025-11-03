@@ -1,101 +1,73 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Interactive n8n + Traefik installer
-# Saves everything under /opt/n8n and creates docker-compose.yml, letsencrypt folder, volumes.
-# Usage: sudo bash setup_n8n_interactive.sh
+# Interactive n8n + Traefik installer (English prompts)
+# Works on Debian/Ubuntu.  Run with:  sudo bash setup_n8n_interactive.sh
 
-# --- utility funcs ---
 prompt() {
   local varname="$1"; shift
-  local prompt_text="$1"; shift
+  local question="$1"; shift
   local default="${1-}"
   local secret="${2-false}"
 
   if [ "$secret" = "true" ]; then
     while true; do
-      read -s -p "$prompt_text [$default]: " val
+      read -s -p "$question [$default]: " val
       echo
       val="${val:-$default}"
-      if [ -n "$val" ]; then
-        eval "$varname=\"\$val\""
-        break
-      fi
-      echo "مقدار خالی مجاز نیست."
+      [ -n "$val" ] && { eval "$varname=\"\$val\""; break; }
+      echo "Value cannot be empty."
     done
   else
-    read -p "$prompt_text [$default]: " val
+    read -p "$question [$default]: " val
     val="${val:-$default}"
     eval "$varname=\"\$val\""
   fi
 }
 
 confirm() {
-  # returns 0 if yes
   read -p "$1 [y/N]: " yn
-  case "$yn" in
-    [Yy]|[Yy][Ee][Ss]) return 0 ;;
-    *) return 1 ;;
-  esac
+  case "$yn" in [Yy]* ) return 0 ;; * ) return 1 ;; esac
 }
 
-# --- welcome and checks ---
 echo "=== n8n + Traefik interactive installer ==="
-if [ "$(id -u)" -ne 0 ]; then
-  echo "این اسکریپت باید با دسترسی root اجرا شود. لطفاً با sudo اجرا کن."
-  exit 1
-fi
+[ "$(id -u)" -ne 0 ] && { echo "Please run as root (sudo)."; exit 1; }
 
-if ! command -v docker >/dev/null 2>&1; then
-  echo "Docker نصب نیست. این اسکریپت سعی می‌کند Docker را نصب کند (فقط برای Debian/Ubuntu)."
-fi
-
-# --- ask user ---
-DEFAULT_DOMAIN="n8n.soulslegacy.top"
-prompt DOMAIN "دامنه (Domain) برای n8n را وارد کن" "$DEFAULT_DOMAIN"
-
-DEFAULT_EMAIL="youremail@example.com"
-prompt ACME_EMAIL "ایمیل برای Let's Encrypt (برای هشدارها و بازیابی) را وارد کن" "$DEFAULT_EMAIL"
-
+# --- Ask user for configuration ---
+prompt DOMAIN        "Enter your domain for n8n"       "n8n.example.com"
+prompt ACME_EMAIL    "Enter your email for Let's Encrypt" "admin@example.com"
 echo
-echo "کلید رمزنگاری (N8N_ENCRYPTION_KEY) را می‌توانی خودت وارد کنی یا خالی بذاری تا اسکریپت یکی تولید کند."
-prompt N8N_ENCRYPTION_KEY "کلید رمزنگاری (در صورت خالی، تولید می‌شود)" "" true
-if [ -z "${N8N_ENCRYPTION_KEY:-}" ]; then
-  echo "در حال تولید یک کلید امن..."
+echo "You can enter your own encryption key or leave empty to auto-generate."
+prompt N8N_ENCRYPTION_KEY "Enter n8n encryption key" "" true
+[ -z "${N8N_ENCRYPTION_KEY:-}" ] && {
+  echo "Generating a secure random encryption key..."
   N8N_ENCRYPTION_KEY="$(openssl rand -base64 48)"
-  echo "تولید شد: (طول = ${#N8N_ENCRYPTION_KEY})"
-fi
-
-DEFAULT_TZ="Asia/Tehran"
-prompt TIMEZONE "تایم‌زون را وارد کن" "$DEFAULT_TZ"
-
-# base paths
-APP_DIR="/opt/n8n"
-LE_DIR="$APP_DIR/letsencrypt"
-COMPOSE_FILE="$APP_DIR/docker-compose.yml"
+  echo "Generated key (length ${#N8N_ENCRYPTION_KEY})."
+}
+prompt TIMEZONE "Enter timezone" "Asia/Tehran"
 
 echo
-echo "خلاصه تنظیمات:"
+echo "Summary:"
 echo "  Domain: $DOMAIN"
 echo "  ACME Email: $ACME_EMAIL"
 echo "  Timezone: $TIMEZONE"
 echo "  Encryption key length: ${#N8N_ENCRYPTION_KEY}"
 echo
-if ! confirm "آیا مایلید ادامه دهیم و فایل‌ها ساخته شوند؟"; then
-  echo "لغو شد."
-  exit 0
-fi
+confirm "Proceed with installation?" || { echo "Cancelled."; exit 0; }
 
-# --- install prerequisites (Debian/Ubuntu) ---
+APP_DIR="/opt/n8n"
+LE_DIR="$APP_DIR/letsencrypt"
+COMPOSE_FILE="$APP_DIR/docker-compose.yml"
+
+# --- Install Docker if missing ---
 if ! command -v docker >/dev/null 2>&1; then
+  echo "Installing Docker..."
   export DEBIAN_FRONTEND=noninteractive
   apt-get update -y
   apt-get install -y ca-certificates curl gnupg openssl
   install -m 0755 -d /etc/apt/keyrings
-  if [ ! -f /etc/apt/keyrings/docker.gpg ]; then
-    curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
-    chmod a+r /etc/apt/keyrings/docker.gpg
-  fi
+  curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+  chmod a+r /etc/apt/keyrings/docker.gpg
   echo \
     "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
     $(. /etc/os-release && echo $VERSION_CODENAME) stable" \
@@ -105,25 +77,23 @@ if ! command -v docker >/dev/null 2>&1; then
   systemctl enable --now docker
 fi
 
-# --- prepare directories and permissions ---
-mkdir -p "$APP_DIR"
-mkdir -p "$LE_DIR"
-# acme.json bind-mount file
+# --- Prepare folders ---
+mkdir -p "$APP_DIR" "$LE_DIR"
 touch "$LE_DIR/acme.json"
 chmod 600 "$LE_DIR/acme.json"
 chown root:root "$LE_DIR/acme.json"
 
-# open firewall ports if ufw exists
+# open firewall ports if ufw present
 if command -v ufw >/dev/null 2>&1; then
   ufw allow 80/tcp || true
   ufw allow 443/tcp || true
 fi
 
-# stop nginx if present to free ports
+# stop nginx if running
 systemctl stop nginx 2>/dev/null || true
 systemctl disable nginx 2>/dev/null || true
 
-# --- write docker-compose.yml ---
+# --- Create docker-compose.yml ---
 cat > "$COMPOSE_FILE" <<EOF
 version: "3.9"
 
@@ -136,10 +106,8 @@ services:
       - --providers.docker.network=web
       - --entrypoints.web.address=:80
       - --entrypoints.websecure.address=:443
-      # Redirect HTTP -> HTTPS
       - --entrypoints.web.http.redirections.entryPoint.to=websecure
       - --entrypoints.web.http.redirections.entryPoint.scheme=https
-      # ACME (HTTP-01)
       - --certificatesresolvers.myresolver.acme.httpchallenge=true
       - --certificatesresolvers.myresolver.acme.httpchallenge.entrypoint=web
       - --certificatesresolvers.myresolver.acme.email=${ACME_EMAIL}
@@ -180,11 +148,6 @@ services:
     restart: always
     networks:
       - web
-    healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:5678 >/dev/null 2>&1 || exit 1"]
-      interval: 10s
-      timeout: 3s
-      retries: 10
 
 volumes:
   n8n_data:
@@ -195,27 +158,18 @@ networks:
     driver: bridge
 EOF
 
-# ensure compose file ownership
-chown root:root "$COMPOSE_FILE"
-chmod 644 "$COMPOSE_FILE"
-
-# --- bring up services ---
 cd "$APP_DIR"
 docker compose pull || true
 docker compose up -d
 
 echo
-echo "==> تمام شد. وضعیت کانتینرها:"
+echo "Installation complete."
 docker compose ps
-
 echo
-echo "برای بررسی وضعیت صدور گواهی (ACME) این دستور را اجرا کن:"
+echo "Check certificate logs:"
 echo "  docker compose logs --tail=200 traefik | egrep -i 'acme|certificate|challenge|myresolver'"
 echo
-echo "سپس در مرورگر به https://$DOMAIN برو."
+echo "Then open:  https://$DOMAIN"
+echo "If using Cloudflare, make sure the DNS record for '$DOMAIN' is DNS-only (gray cloud) during certificate issuance."
 echo
-echo "نکته‌های مهم:"
-echo " - اگر از Cloudflare استفاده می‌کنی و رکورد 'n8n' پروکسی (orange cloud) دارد، آن را موقتاً روی DNS only بگذار."
-echo " - کلید رمزنگاری را جایی امن نگه دار؛ اگر آن را گم کنی، دسترسی به credential های قبلی سخت می‌شود."
-echo
-echo "اگر خواستی نسخه‌ای برای DNS-01 (Cloudflare) بسازم تا پروکسی روشن بمونه بگو."
+echo "Keep this encryption key safe.  Losing it means you can't decrypt stored credentials."
