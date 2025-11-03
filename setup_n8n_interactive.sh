@@ -1,12 +1,48 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Interactive n8n + Traefik installer
-# - Detects public IP and uses it if domain is left empty (HTTP-only mode)
-# - If domain is provided -> HTTPS with Let's Encrypt (Traefik)
-# - English prompts, default-YES confirmation, auto-generate encryption key, opens link
+# Interactive n8n + Traefik installer with progress bar
+# - Shows a clean progress bar during installation
+# - Automatically handles HTTP/HTTPS based on domain input
+# - Minimal console output, focused on progress
 
-# ---------- helpers ----------
+# ---------- UI Helpers ----------
+show_banner() {
+    clear
+    echo "╔══════════════════════════════════════════════════════════╗"
+    echo "║                  n8n Installation in Progress            ║"
+    echo "╠══════════════════════════════════════════════════════════╣"
+    echo "║                                                          ║"
+    echo "║  ██████████████████████████████████████████████████████  ║"
+    echo "║  █                                                  █  ║"
+    echo "║  █           Installing n8n - Please wait...        █  ║"
+    echo "║  █                                                  █  ║"
+    echo "║  █  [░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░]  ║"
+    echo "║  █   0%                                              ║"
+    echo "║                                                          ║"
+    echo "╚══════════════════════════════════════════════════════════╝"
+}
+
+update_progress() {
+    local percent=$1
+    local message=$2
+    local filled=$((percent * 50 / 100))
+    local empty=$((50 - filled))
+    
+    # Move cursor up 5 lines to update progress
+    echo -ne "\033[7A"
+    
+    # Update progress bar
+    printf "║  █  [%s%s]  %3d%% %-30s █  ║\n" \
+        "$(printf '█%.0s' $(seq 1 $filled))" \
+        "$(printf '░%.0s' $(seq 1 $empty))" \
+        "$percent" "$message"
+    
+    # Move cursor back down
+    echo -ne "\033[6B"
+}
+
+# ---------- System Helpers ----------
 detect_public_ip() {
   local ip=""
   ip="$(curl -fsS https://api.ipify.org || true)"
@@ -66,17 +102,33 @@ open_link() {
 }
 
 # ---------- start ----------
-echo "=== n8n + Traefik interactive installer ==="
-[ "$(id -u)" -ne 0 ] && { echo "Please run as root (sudo)."; exit 1; }
+# Show initial banner
+show_banner
+update_progress 5 "Starting installation..."
 
+# Check if running as root
+[ "$(id -u)" -ne 0 ] && { 
+    update_progress 0 "Error: Please run as root (sudo)."
+    exit 1 
+}
+
+update_progress 10 "Detecting public IP..."
 PUBIP="$(detect_public_ip)"
 [ -z "$PUBIP" ] && PUBIP="YOUR_SERVER_IP"
-
-echo
 echo "Detected public IP: $PUBIP"
-prompt DOMAIN "Enter domain for n8n (leave empty to use IP and HTTP)" "" "allow-empty"
+update_progress 15 "Checking domain configuration..."
+# Temporarily show prompt for domain
+if [ -z "${DOMAIN:-}" ]; then
+    echo -e "\n\n"
+    prompt DOMAIN "Enter domain for n8n (leave empty to use IP and HTTP)" "" "allow-empty"
+    # Clear the prompt lines after input
+    echo -e "\033[3A\033[K\033[3B"
+    show_banner
+    update_progress 20 "Configuration received"
+fi
 
 if [ -n "$DOMAIN" ]; then
+  update_progress 25 "Configuring HTTPS for $DOMAIN..."
   DEFAULT_EMAIL="admin@example.com"
   prompt ACME_EMAIL "Enter email for Let's Encrypt (used for renewal notices)" "$DEFAULT_EMAIL"
 else
@@ -113,6 +165,7 @@ COMPOSE_FILE="$APP_DIR/docker-compose.yml"
 
 # ---------- install Docker if missing ----------
 if ! command -v docker >/dev/null 2>&1; then
+  update_progress 30 "Preparing system..."
   echo "Installing Docker..."
   export DEBIAN_FRONTEND=noninteractive
   apt-get update -y
@@ -268,11 +321,14 @@ fi
 
 # ---------- launch ----------
 cd "$APP_DIR"
+update_progress 80 "Starting n8n services..."
 docker compose pull || true
 docker compose up -d
 
 echo
 echo "============================================================"
+update_progress 100 "Installation complete!"
+sleep 1
 echo "✅ Installation completed successfully!"
 docker compose ps
 echo
