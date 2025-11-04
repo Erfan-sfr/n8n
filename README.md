@@ -44,35 +44,79 @@ sudo ./setup-n8n.sh
 
 ## 🎮 Management Commands
 
+### Easy Access with n8n-manager
+First, make the manager script executable and move it to your PATH:
+
+```bash
+# Make the script executable
+chmod +x n8n-manager
+
+# Install it system-wide (recommended)
+sudo cp n8n-manager /usr/local/bin/
+
+# Verify installation
+n8n-manager --help
+```
+
 ### Interactive Menu:
 ```bash
+# Using the manager (recommended)
+n8n-manager
+
+# Or directly
 sudo ./setup-n8n.sh
 ```
 
-### Start Service:
+### Common Commands:
+
+#### Start Service:
 ```bash
+n8n-manager start
+# or
 sudo ./setup-n8n.sh start
 ```
 
-### Stop Service:
+#### Stop Service:
 ```bash
+n8n-manager stop
+# or
 sudo ./setup-n8n.sh stop
 ```
 
-### Restart Service:
+#### Restart Service:
 ```bash
+n8n-manager restart
+# or
 sudo ./setup-n8n.sh restart
 ```
 
-### Check Status:
+#### Check Status:
 ```bash
+n8n-manager status
+# or
 sudo ./setup-n8n.sh status
 ```
 
-### Complete Uninstall:
+#### View Cloudflare Logs & Get URL:
 ```bash
+# View real-time logs and get Cloudflare URL
+n8n-manager logs
+# or
+sudo ./setup-n8n.sh logs
+```
+
+#### Complete Uninstall:
+```bash
+n8n-manager uninstall
+# or
 sudo ./setup-n8n.sh uninstall
 ```
+
+### Quick Access:
+After installation, you can run these commands from anywhere in your terminal:
+- `n8n-manager` - Show interactive menu
+- `n8n-manager logs` - View Cloudflare logs and get tunnel URL
+- `n8n-manager status` - Check service status and get access URL
 
 ## 🔧 Configuration
 
