@@ -33,8 +33,6 @@ detect_public_ip() {
   local ip=""
   ip="$(curl -fsS https://api.ipify.org || true)"
 
-<<<<<<< HEAD
-=======
 prompt() {
   local varname="$1"; shift
   local question="$1"; shift
@@ -88,7 +86,6 @@ open_link() {
     echo "Note: Open the above link manually in your browser."
   fi
 }
->>>>>>> ea6e319e156370cb1ddecf64e797f529e2d9b97a
 
 # ---------- start ----------
 echo "=== n8n + Traefik interactive installer ==="
