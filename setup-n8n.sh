@@ -217,6 +217,28 @@ uninstall_n8n() {
     print_info "Note: Docker and Docker Compose are still installed. Remove them manually if needed."
 }
 
+# Function to show Cloudflare logs
+show_cloudflare_logs() {
+    if ! is_installed; then
+        print_error "n8n is not installed."
+        return 1
+    fi
+    
+    cd "$N8N_DIR" || return 1
+    
+    print_section "Cloudflare Tunnel Logs"
+    echo "Showing Cloudflare tunnel logs. Press Ctrl+C to exit..."
+    echo -e "${YELLOW}Looking for your Cloudflare URL...${NC}\n"
+    
+    # Follow Cloudflare logs and look for the URL
+    docker-compose logs --tail=100 -f cloudflared-quick 2>&1 | \
+        grep --line-buffered -oP 'https://[^\.]+\.trycloudflare\.com' | \
+        while read -r url; do
+            echo -e "\n${GREEN}✅ Your Cloudflare Tunnel URL: ${url}${NC}"
+            echo "You can now access n8n at: ${url}"
+        done
+}
+
 # Function to show n8n status
 show_status() {
     if ! is_installed; then
@@ -240,6 +262,14 @@ show_status() {
     # Show Cloudflare tunnel logs
     echo -e "\n${YELLOW}=== Cloudflare Tunnel Logs (last 10 lines) ===${NC}"
     docker-compose logs --tail=10 cloudflared-quick 2>/dev/null || echo "No logs available"
+    
+    # Show Cloudflare URL if available
+    echo -e "\n${YELLOW}=== Cloudflare URL (if connected) ===${NC}"
+    docker-compose logs cloudflared-quick 2>/dev/null | \
+        grep -oP 'https://[^\.]+\.trycloudflare\.com' | \
+        tail -1 | \
+        xargs -I {} echo "Your n8n is accessible at: {}" || \
+        echo "Cloudflare URL not found in logs. The tunnel might not be connected."
 }
 
 # Function to show menu
@@ -251,7 +281,8 @@ show_menu() {
     echo "3. Stop n8n"
     echo "4. Restart n8n"
     echo "5. Show status"
-    echo -e "${RED}6. Uninstall n8n${NC}"
+    echo "6. Show Cloudflare logs & URL"
+    echo -e "${RED}7. Uninstall n8n${NC}"
     echo "0. Exit"
     echo -e "${BLUE}============================${NC}"
 }
@@ -286,6 +317,9 @@ main() {
         status)
             show_status
             ;;
+        logs|log)
+            show_cloudflare_logs
+            ;;
         uninstall)
             uninstall_n8n
             ;;
@@ -316,6 +350,10 @@ main() {
                         show_status
                         ;;
                     6)
+                        show_cloudflare_logs
+                        read -n 1 -s -r -p "Press any key to continue..."
+                        ;;
+                    7)
                         read -p "Are you sure you want to uninstall n8n? This will remove all data. (y/N): " confirm
                         if [[ $confirm =~ ^[Yy]$ ]]; then
                             uninstall_n8n

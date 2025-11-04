@@ -1,0 +1,13 @@
+#!/bin/bash
+
+# Path to the n8n management script
+N8N_SCRIPT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/setup-n8n.sh"
+
+# Check if the script exists
+if [ ! -f "$N8N_SCRIPT" ]; then
+    echo "Error: Could not find n8n management script at $N8N_SCRIPT"
+    exit 1
+fi
+
+# Run the script with sudo
+sudo "$N8N_SCRIPT" "$@"
