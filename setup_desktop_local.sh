@@ -4,9 +4,18 @@
 echo "Updating package list and upgrading existing packages..."
 sudo apt update && sudo apt upgrade -y
 
-# Install required packages for desktop environment and n8n
+# Install required packages for desktop environment
 echo "Installing required packages..."
-sudo apt install -y ubuntu-desktop xrdp nodejs npm
+sudo apt install -y ubuntu-desktop xrdp curl
+
+# Install Node.js 20.x LTS
+echo "Installing Node.js 20.x LTS..."
+curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash - &&\
+sudo apt-get install -y nodejs
+
+# Update npm to the latest version
+echo "Updating npm to the latest version..."
+sudo npm install -g npm@latest
 
 # Install n8n globally
 echo "Installing n8n..."
