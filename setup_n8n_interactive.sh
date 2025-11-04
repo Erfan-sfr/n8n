@@ -72,9 +72,7 @@ prompt() {
 }
 
 confirm() {
-@@ -32,27 +54,54 @@ confirm() {
-  esac
-}
+
 
 open_link() {
   local url="$1"
@@ -91,13 +89,10 @@ open_link() {
 echo "=== n8n + Traefik interactive installer ==="
 [ "$(id -u)" -ne 0 ] && { echo "Please run as root (sudo)."; exit 1; }
 
-<<<<<<< HEAD
 
-=======
 # --- Ask user for configuration ---
 prompt DOMAIN        "Enter your domain for n8n"       "n8n.example.com"
 prompt ACME_EMAIL    "Enter your email for Let's Encrypt" "admin@example.com"
->>>>>>> ea6e319e156370cb1ddecf64e797f529e2d9b97a
 PUBIP="$(detect_public_ip)"
 [ -z "$PUBIP" ] && PUBIP="YOUR_SERVER_IP"
 
@@ -111,8 +106,6 @@ if [ -n "$DOMAIN" ]; then
   DEFAULT_EMAIL="admin@example.com"
   prompt ACME_EMAIL "Enter email for Let's Encrypt (used for renewal notices)" "$DEFAULT_EMAIL"
 else
-<<<<<<< HEAD
-=======
   ACME_EMAIL=""  # not needed in IP/HTTP mode
 fi
 
@@ -148,14 +141,11 @@ LE_DIR="$APP_DIR/letsencrypt"
 COMPOSE_FILE="$APP_DIR/docker-compose.yml"
 
 # --- Install Docker if missing ---
->>>>>>> ea6e319e156370cb1ddecf64e797f529e2d9b97a
 # ---------- install Docker if missing ----------
 if ! command -v docker >/dev/null 2>&1; then
   echo "Installing Docker..."
   export DEBIAN_FRONTEND=noninteractive
-<<<<<<< HEAD
   apt-get update -y
-=======
 @@ -80,26 +129,29 @@ if ! command -v docker >/dev/null 2>&1; then
   systemctl enable --now docker
 fi
@@ -256,7 +246,6 @@ networks:
 EOF
 fi
 
->>>>>>> ea6e319e156370cb1ddecf64e797f529e2d9b97a
 # ---------- launch ----------
 cd "$APP_DIR"
 docker compose pull || true
@@ -269,9 +258,7 @@ echo "Your n8n panel is available at:"
 LINK="https://$DOMAIN"
 echo "👉  $LINK"
 docker compose ps
-<<<<<<< HEAD
 echo
-=======
 echo
 
 # Try to open automatically if possible
@@ -303,4 +290,3 @@ echo "============================================================"
 
 # Try to open automatically
 open_link "$LINK"
->>>>>>> ea6e319e156370cb1ddecf64e797f529e2d9b97a
