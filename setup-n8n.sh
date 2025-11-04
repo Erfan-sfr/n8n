@@ -272,6 +272,48 @@ show_status() {
         echo "Cloudflare URL not found in logs. The tunnel might not be connected."
 }
 
+# Function to update from GitHub
+update_from_github() {
+    if ! is_installed; then
+        print_error "n8n is not installed. Please install it first."
+        return 1
+    fi
+
+    print_section "Updating n8n from GitHub"
+    
+    # Get the current directory
+    local current_dir=$(pwd)
+    
+    # Go to the n8n directory
+    cd "$(dirname "$0")" || return 1
+    
+    # Stash local changes if any
+    git stash push --include-untracked --message "Temporary stash before update"
+    
+    # Pull the latest changes
+    if git pull origin main; then
+        print_success "Successfully updated from GitHub"
+        
+        # Make scripts executable
+        chmod +x setup-n8n.sh n8n-manager
+        
+        # Restart services to apply changes
+        echo -e "\n${YELLOW}Restarting services to apply updates...${NC}"
+        docker-compose down
+        docker-compose up -d
+        
+        print_success "n8n has been updated and restarted"
+        print_info "You may need to check the logs for any configuration changes"
+    else
+        print_error "Failed to update from GitHub"
+        # Restore stashed changes if update failed
+        git stash pop
+    fi
+    
+    # Return to the original directory
+    cd "$current_dir" || return 1
+}
+
 # Function to show menu
 show_menu() {
     clear
@@ -282,7 +324,8 @@ show_menu() {
     echo "4. Restart n8n"
     echo "5. Show status"
     echo "6. Show Cloudflare logs & URL"
-    echo -e "${RED}7. Uninstall n8n${NC}"
+    echo "7. Update n8n from GitHub"
+    echo -e "${RED}8. Uninstall n8n${NC}"
     echo "0. Exit"
     echo -e "${BLUE}============================${NC}"
 }
@@ -320,6 +363,9 @@ main() {
         logs|log)
             show_cloudflare_logs
             ;;
+        update|upgrade)
+            update_from_github
+            ;;
         uninstall)
             uninstall_n8n
             ;;
@@ -354,6 +400,9 @@ main() {
                         read -n 1 -s -r -p "Press any key to continue..."
                         ;;
                     7)
+                        update_from_github
+                        ;;
+                    8)
                         read -p "Are you sure you want to uninstall n8n? This will remove all data. (y/N): " confirm
                         if [[ $confirm =~ ^[Yy]$ ]]; then
                             uninstall_n8n

@@ -105,6 +105,14 @@ n8n-manager logs
 sudo ./setup-n8n.sh logs
 ```
 
+#### Update from GitHub:
+```bash
+# Update to the latest version
+n8n-manager update
+# or
+sudo ./setup-n8n.sh update
+```
+
 #### Complete Uninstall:
 ```bash
 n8n-manager uninstall
@@ -117,6 +125,7 @@ After installation, you can run these commands from anywhere in your terminal:
 - `n8n-manager` - Show interactive menu
 - `n8n-manager logs` - View Cloudflare logs and get tunnel URL
 - `n8n-manager status` - Check service status and get access URL
+- `n8n-manager update` - Update to the latest version from GitHub
 
 ## 🔧 Configuration
 
