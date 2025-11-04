@@ -12,9 +12,13 @@ sudo apt install -y ubuntu-desktop xrdp nodejs npm
 echo "Installing n8n..."
 sudo npm install n8n -g
 
+# Get the full path to n8n
+N8N_PATH=$(which n8n)
+NODE_PATH=$(which node)
+
 # Create a systemd service for n8n
 echo "Creating n8n systemd service..."
-cat <<EOF | sudo tee /etc/systemd/system/n8n.service > /dev/null
+sudo bash -c 'cat > /etc/systemd/system/n8n.service' << EOF
 [Unit]
 Description=n8n Workflow Automation
 After=network.target
@@ -23,10 +27,13 @@ After=network.target
 Type=simple
 User=$USER
 WorkingDirectory=/home/$USER
-ExecStart=$(which n8n) start
+Environment="PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+Environment="NODE_OPTIONS=--max_old_space_size=4096"
+ExecStart=${N8N_PATH} start
 Restart=always
 RestartSec=10
-Environment="NODE_OPTIONS=--max_old_space_size=4096"
+StandardOutput=journal
+StandardError=journal
 
 [Install]
 WantedBy=multi-user.target
