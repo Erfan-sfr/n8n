@@ -6,16 +6,31 @@ sudo apt update && sudo apt upgrade -y
 
 # Install required packages for desktop environment
 echo "Installing required packages..."
-sudo apt install -y ubuntu-desktop xrdp curl
+sudo apt install -y ubuntu-desktop xrdp curl build-essential
 
-# Install Node.js 20.x LTS
-echo "Installing Node.js 20.x LTS..."
-curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash - &&\
-sudo apt-get install -y nodejs
+# Remove existing Node.js installations
+echo "Removing existing Node.js installations..."
+sudo apt remove --purge nodejs npm -y
+sudo apt autoremove -y
+rm -rf ~/.npm ~/.node-gyp ~/.nvm
+
+# Install NVM (Node Version Manager)
+echo "Installing NVM (Node Version Manager)..."
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.5/install.sh | bash
+
+# Load NVM
+NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
+
+# Install Node.js 20.x LTS using NVM
+echo "Installing Node.js 20.x LTS using NVM..."
+nvm install 20
+nvm use 20
 
 # Update npm to the latest version
 echo "Updating npm to the latest version..."
-sudo npm install -g npm@latest
+npm install -g npm@latest
 
 # Install n8n globally
 echo "Installing n8n..."
