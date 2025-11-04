@@ -1,79 +1,121 @@
-# n8n with Cloudflare Tunnel
+# 🚀 n8n Automation Platform with Cloudflare Tunnel
 
-This repository contains a complete setup for running n8n with Cloudflare Tunnel for secure remote access.
+> **A complete solution for deploying n8n with high security and easy internet access**
 
-## Features
+## 📦 Repository Contents
 
-- One-click installation and configuration
-- Automatic Docker and Docker Compose setup
-- Cloudflare Tunnel integration
-- Interactive menu for easy management
-- Secure by default with basic authentication
+This repository contains automated scripts for quick and easy n8n setup with secure Cloudflare Tunnel.
 
-## Prerequisites
+### Main Files:
 
-- Linux server (Ubuntu/Debian recommended)
+1. **`setup-n8n.sh`** - Main installation and management script
+2. **`.gitignore`** - Git settings to ignore sensitive files
+3. **`README.md`** - This documentation file
+
+## ✨ Key Features
+
+- ✅ One-click n8n installation
+- 🔒 High security with basic authentication
+- 🌐 Secure internet access via Cloudflare Tunnel
+- 🛠️ Interactive menu for easy management
+- 🔄 Auto-update functionality
+
+## 🚀 Quick Start
+
+### Prerequisites:
+- A Linux server (Ubuntu 20.04/22.04 recommended)
 - Root access
-- Domain name (for Cloudflare Tunnel)
+- A valid domain name
 - Cloudflare account
 
-## Quick Start
+### Installation:
 
-1. Clone this repository:
-   ```bash
-   git clone https://github.com/Erfan-sfr/n8n.git
-   cd n8n
-   ```
+```bash
+# Clone the repository
+git clone https://github.com/Erfan-sfr/n8n.git
+cd n8n
 
-2. Make the setup script executable:
-   ```bash
-   chmod +x setup-n8n.sh
-   ```
+# Make the script executable
+chmod +x setup-n8n.sh
 
-3. Run the installation:
-   ```bash
-   sudo ./setup-n8n.sh
-   ```
+# Run the installation (with root privileges)
+sudo ./setup-n8n.sh
+```
 
-4. Follow the interactive menu to complete the setup.
+## 🎮 Management Commands
 
-## Usage
+### Interactive Menu:
+```bash
+sudo ./setup-n8n.sh
+```
 
-### Start n8n
+### Start Service:
 ```bash
 sudo ./setup-n8n.sh start
 ```
 
-### Stop n8n
+### Stop Service:
 ```bash
 sudo ./setup-n8n.sh stop
 ```
 
-### Check Status
+### Restart Service:
+```bash
+sudo ./setup-n8n.sh restart
+```
+
+### Check Status:
 ```bash
 sudo ./setup-n8n.sh status
 ```
 
-### Uninstall
+### Complete Uninstall:
 ```bash
 sudo ./setup-n8n.sh uninstall
 ```
 
-## Accessing n8n
+## 🔧 Configuration
+
+Configuration file is located at:
+```
+/opt/n8n/.env
+```
+
+### Important Settings:
+- Admin username and password
+- SMTP settings for email notifications
+- Domain and port configurations
+- Cloudflare security token
+
+## 🔒 Security
+
+- 🔑 Always change the default password
+- 🔒 Use SSL certificates
+- 🔄 Keep the software updated
+- 🔍 Regularly check logs
+
+## 🌐 Access
 
 - Local access: `http://localhost:5678`
-- Remote access: `https://yourdomain.com` (after Cloudflare Tunnel setup)
+- Internet access: `https://yourdomain.com`
 
-## Security
+## 🤝 Contributing
 
-- Change the default admin password in the `.env` file
-- Keep your Cloudflare Tunnel token secure
-- Regularly update n8n and its dependencies
+Your contributions are welcome! Please:
+1. Create a new issue
+2. Use a separate branch
+3. Submit a pull request
 
-## License
+## 📜 License
 
-MIT
+This project is licensed under the MIT License.
 
-## Support
+## 📞 Support
 
-For issues and feature requests, please use the [issue tracker](https://github.com/Erfan-sfr/n8n/issues).
+For issues or feature requests, please use the [Issues](https://github.com/Erfan-sfr/n8n/issues) section on GitHub.
+
+---
+
+<div align="center">
+  Created with ❤️ by Erfansfr
+</div>
