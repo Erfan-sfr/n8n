@@ -1,4 +1,3 @@
-@@ -1,12 +1,48 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
@@ -31,8 +30,7 @@ update_progress() {
 detect_public_ip() {
   local ip=""
   ip="$(curl -fsS https://api.ipify.org || true)"
-@@ -66,17 +102,33 @@ open_link() {
-}
+
 
 # ---------- start ----------
 echo "=== n8n + Traefik interactive installer ==="
@@ -52,13 +50,11 @@ if [ -n "$DOMAIN" ]; then
   DEFAULT_EMAIL="admin@example.com"
   prompt ACME_EMAIL "Enter email for Let's Encrypt (used for renewal notices)" "$DEFAULT_EMAIL"
 else
-@@ -113,6 +165,7 @@ COMPOSE_FILE="$APP_DIR/docker-compose.yml"
 # ---------- install Docker if missing ----------
 if ! command -v docker >/dev/null 2>&1; then
   echo "Installing Docker..."
   export DEBIAN_FRONTEND=noninteractive
   apt-get update -y
-@@ -268,11 +321,14 @@ fi
 # ---------- launch ----------
 cd "$APP_DIR"
 docker compose pull || true
