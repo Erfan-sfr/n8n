@@ -318,14 +318,13 @@ update_from_github() {
 show_menu() {
     clear
     echo -e "${BLUE}=== n8n Management Script ===${NC}"
-    echo -e "${GREEN}1. Install n8n with Cloudflare Tunnel"
+    echo -e "${GREEN}1. Install/Update n8n with Cloudflare Tunnel"
     echo "2. Start n8n"
     echo "3. Stop n8n"
     echo "4. Restart n8n"
     echo "5. Show status"
     echo "6. Show Cloudflare logs & URL"
-    echo "7. Update n8n from GitHub"
-    echo -e "${RED}8. Uninstall n8n${NC}"
+    echo -e "${RED}7. Uninstall n8n${NC}"
     echo "0. Exit"
     echo -e "${BLUE}============================${NC}"
 }
@@ -364,7 +363,11 @@ main() {
             show_cloudflare_logs
             ;;
         update|upgrade)
-            update_from_github
+            echo "Updating n8n..."
+            cd "$(dirname "$0")" || exit 1
+            git pull origin main
+            echo "Please run the script again to continue"
+            exit 0
             ;;
         uninstall)
             uninstall_n8n
@@ -400,9 +403,6 @@ main() {
                         read -n 1 -s -r -p "Press any key to continue..."
                         ;;
                     7)
-                        update_from_github
-                        ;;
-                    8)
                         read -p "Are you sure you want to uninstall n8n? This will remove all data. (y/N): " confirm
                         if [[ $confirm =~ ^[Yy]$ ]]; then
                             uninstall_n8n

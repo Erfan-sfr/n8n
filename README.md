@@ -31,101 +31,56 @@ This repository contains automated scripts for quick and easy n8n setup with sec
 ### Installation:
 
 ```bash
-# Clone the repository
 git clone https://github.com/Erfan-sfr/n8n.git
 cd n8n
-
-# Make the script executable
-chmod +x setup-n8n.sh
-
-# Run the installation (with root privileges)
-sudo ./setup-n8n.sh
+sudo bash setup-n8n.sh
 ```
 
 ## 🎮 Management Commands
 
-### Easy Access with n8n-manager
-First, make the manager script executable and move it to your PATH:
-
-```bash
-# Make the script executable
-chmod +x n8n-manager
-
-# Install it system-wide (recommended)
-sudo cp n8n-manager /usr/local/bin/
-
-# Verify installation
-n8n-manager --help
-```
+Use these commands from the n8n directory:
 
 ### Interactive Menu:
 ```bash
-# Using the manager (recommended)
-n8n-manager
-
-# Or directly
-sudo ./setup-n8n.sh
+sudo bash setup-n8n.sh
 ```
 
 ### Common Commands:
 
 #### Start Service:
 ```bash
-n8n-manager start
-# or
-sudo ./setup-n8n.sh start
+sudo bash setup-n8n.sh start
 ```
 
 #### Stop Service:
 ```bash
-n8n-manager stop
-# or
-sudo ./setup-n8n.sh stop
+sudo bash setup-n8n.sh stop
 ```
 
 #### Restart Service:
 ```bash
-n8n-manager restart
-# or
-sudo ./setup-n8n.sh restart
+sudo bash setup-n8n.sh restart
 ```
 
 #### Check Status:
 ```bash
-n8n-manager status
-# or
-sudo ./setup-n8n.sh status
+sudo bash setup-n8n.sh status
 ```
 
-#### View Cloudflare Logs & Get URL:
+#### View Cloudflare Logs:
 ```bash
-# View real-time logs and get Cloudflare URL
-n8n-manager logs
-# or
-sudo ./setup-n8n.sh logs
+sudo bash setup-n8n.sh logs
 ```
 
 #### Update from GitHub:
 ```bash
-# Update to the latest version
-n8n-manager update
-# or
-sudo ./setup-n8n.sh update
+sudo bash setup-n8n.sh update
 ```
 
 #### Complete Uninstall:
 ```bash
-n8n-manager uninstall
-# or
-sudo ./setup-n8n.sh uninstall
+sudo bash setup-n8n.sh uninstall
 ```
-
-### Quick Access:
-After installation, you can run these commands from anywhere in your terminal:
-- `n8n-manager` - Show interactive menu
-- `n8n-manager logs` - View Cloudflare logs and get tunnel URL
-- `n8n-manager status` - Check service status and get access URL
-- `n8n-manager update` - Update to the latest version from GitHub
 
 ## 🔧 Configuration
 
