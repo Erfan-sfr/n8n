@@ -324,9 +324,10 @@ show_menu() {
     echo -e "4. Restart n8n"
     echo -e "5. Restart Cloudflare tunnel"
     echo -e "6. Update Webhook URL"
-    echo -e "7. Show status"
-    echo -e "8. Show Cloudflare logs"
-    echo -e "9. Uninstall n8n"
+    echo -e "7. Edit docker-compose.yml"
+    echo -e "8. Show status"
+    echo -e "9. Show Cloudflare logs"
+    echo -e "10. Uninstall n8n"
     echo -e "0. Exit${NC}"
     echo -e "${BLUE}============================${NC}"
 }
@@ -455,13 +456,39 @@ main() {
                         fi
                         ;;
                     7)
-                        show_status
+                        if is_installed; then
+                            cd "$N8N_DIR" || continue
+                            if command -v nano &> /dev/null; then
+                                print_section "Opening docker-compose.yml in nano editor"
+                                nano docker-compose.yml
+                                read -p "Do you want to restart the services to apply changes? [y/N] " restart_choice
+                                if [[ $restart_choice =~ ^[Yy]$ ]]; then
+                                    print_section "Restarting services to apply changes"
+                                    docker-compose down
+                                    docker-compose up -d
+                                    if [ $? -eq 0 ]; then
+                                        print_success "Services restarted successfully with new configuration"
+                                    else
+                                        print_error "Failed to restart services. Please check docker-compose.yml for errors."
+                                    fi
+                                fi
+                            else
+                                print_error "nano editor is not installed. Please install it with: apt-get install nano"
+                            fi
+                                print_error "Invalid URL format. Please include http:// or https://"
+                            fi
+                        else
+                            print_error "n8n is not installed."
+                        fi
                         ;;
                     8)
+                        show_status
+                        ;;
+                    9)
                         show_cloudflare_logs
                         read -n 1 -s -r -p "Press any key to continue..."
                         ;;
-                    9)
+                    10)
                         read -p "Are you sure you want to uninstall n8n? This will remove all data. (y/N): " confirm
                         if [[ $confirm =~ ^[Yy]$ ]]; then
                             uninstall_n8n
