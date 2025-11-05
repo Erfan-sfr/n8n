@@ -473,9 +473,7 @@ main() {
                                     fi
                                 fi
                             else
-                                print_error "nano editor is not installed. Please install it with: apt-get install nano"
-                            fi
-                                print_error "Invalid URL format. Please include http:// or https://"
+                                    print_error "nano editor is not installed. Please install it with: apt-get install nano"
                             fi
                         else
                             print_error "n8n is not installed."
