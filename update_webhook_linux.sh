@@ -88,7 +88,7 @@ if [ -z "$NEW_URL" ]; then
         if [ -n "$NEW_URL" ]; then
             break
         fi
-done
+    done
 
 [ -n "$NEW_URL" ] || fail "Could not find a fresh trycloudflare URL in logs."
 echo "URL found: $NEW_URL"
