@@ -318,14 +318,15 @@ update_from_github() {
 show_menu() {
     clear
     echo -e "${BLUE}=== n8n Management Script ===${NC}"
-    echo -e "${GREEN}1. Install/Update n8n with Cloudflare Tunnel"
-    echo "2. Start n8n"
-    echo "3. Stop n8n"
-    echo "4. Restart n8n"
-    echo "5. Show status"
-    echo "6. Show Cloudflare logs & URL"
-    echo -e "${RED}7. Uninstall n8n${NC}"
-    echo "0. Exit"
+    echo -e "${GREEN}1. Install n8n"
+    echo -e "2. Start n8n"
+    echo -e "3. Stop n8n"
+    echo -e "4. Restart n8n"
+    echo -e "5. Restart Cloudflare tunnel"
+    echo -e "6. Show status"
+    echo -e "7. Show Cloudflare logs"
+    echo -e "8. Uninstall n8n"
+    echo -e "0. Exit${NC}"
     echo -e "${BLUE}============================${NC}"
 }
 
@@ -418,13 +419,27 @@ main() {
                         fi
                         ;;
                     5)
-                        show_status
+                        if is_installed; then
+                            cd "$N8N_DIR" || continue
+                            print_section "Restarting only Cloudflare tunnel (keeping n8n running)"
+                            docker-compose restart cloudflared-quick
+                            if [ $? -eq 0 ]; then
+                                print_success "Cloudflare tunnel restarted successfully"
+                            else
+                                print_error "Failed to restart Cloudflare tunnel"
+                            fi
+                        else
+                            print_error "n8n is not installed."
+                        fi
                         ;;
                     6)
+                        show_status
+                        ;;
+                    7)
                         show_cloudflare_logs
                         read -n 1 -s -r -p "Press any key to continue..."
                         ;;
-                    7)
+                    8)
                         read -p "Are you sure you want to uninstall n8n? This will remove all data. (y/N): " confirm
                         if [[ $confirm =~ ^[Yy]$ ]]; then
                             uninstall_n8n
