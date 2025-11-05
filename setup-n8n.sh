@@ -353,8 +353,20 @@ main() {
             stop_n8n
             ;;
         restart)
-            stop_n8n
-            start_n8n
+            if is_installed; then
+                cd "$N8N_DIR" || exit 1
+                print_section "Restarting only n8n service (keeping cloudflared running)"
+                docker-compose restart n8n
+                if [ $? -eq 0 ]; then
+                    print_success "n8n service restarted successfully"
+                else
+                    print_error "Failed to restart n8n service"
+                    exit 1
+                fi
+            else
+                print_error "n8n is not installed."
+                exit 1
+            fi
             ;;
         status)
             show_status
@@ -392,8 +404,18 @@ main() {
                         stop_n8n
                         ;;
                     4)
-                        stop_n8n
-                        start_n8n
+                        if is_installed; then
+                            cd "$N8N_DIR" || continue
+                            print_section "Restarting only n8n service (keeping cloudflared running)"
+                            docker-compose restart n8n
+                            if [ $? -eq 0 ]; then
+                                print_success "n8n service restarted successfully"
+                            else
+                                print_error "Failed to restart n8n service"
+                            fi
+                        else
+                            print_error "n8n is not installed."
+                        fi
                         ;;
                     5)
                         show_status
