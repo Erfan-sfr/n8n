@@ -323,9 +323,10 @@ show_menu() {
     echo -e "3. Stop n8n"
     echo -e "4. Restart n8n"
     echo -e "5. Restart Cloudflare tunnel"
-    echo -e "6. Show status"
-    echo -e "7. Show Cloudflare logs"
-    echo -e "8. Uninstall n8n"
+    echo -e "6. Update Webhook URL"
+    echo -e "7. Show status"
+    echo -e "8. Show Cloudflare logs"
+    echo -e "9. Uninstall n8n"
     echo -e "0. Exit${NC}"
     echo -e "${BLUE}============================${NC}"
 }
@@ -433,13 +434,34 @@ main() {
                         fi
                         ;;
                     6)
-                        show_status
+                        if is_installed; then
+                            cd "$N8N_DIR" || continue
+                            read -p "Enter new webhook URL (e.g., https://yourdomain.com/webhook): " webhook_url
+                            if [[ $webhook_url =~ ^https?:// ]]; then
+                                # Update docker-compose.yml
+                                sed -i "s|N8N_WEBHOOK_URL=.*|N8N_WEBHOOK_URL=$webhook_url|" docker-compose.yml
+                                # Restart n8n to apply changes
+                                docker-compose restart n8n
+                                if [ $? -eq 0 ]; then
+                                    print_success "Webhook URL updated and n8n restarted successfully"
+                                else
+                                    print_error "Failed to restart n8n after updating webhook URL"
+                                fi
+                            else
+                                print_error "Invalid URL format. Please include http:// or https://"
+                            fi
+                        else
+                            print_error "n8n is not installed."
+                        fi
                         ;;
                     7)
+                        show_status
+                        ;;
+                    8)
                         show_cloudflare_logs
                         read -n 1 -s -r -p "Press any key to continue..."
                         ;;
-                    8)
+                    9)
                         read -p "Are you sure you want to uninstall n8n? This will remove all data. (y/N): " confirm
                         if [[ $confirm =~ ^[Yy]$ ]]; then
                             uninstall_n8n
@@ -513,6 +535,7 @@ services:
       - N8N_PORT=5678
       - N8N_PROTOCOL=http
       - N8N_EMAIL_MODE=true
+      - N8N_WEBHOOK_URL=https://yourdomain.com/webhook
       - N8N_SMTP_HOST=smtp.yourdomain.com
       - N8N_SMTP_PORT=587
       - N8N_SMTP_USER=user@yourdomain.com
