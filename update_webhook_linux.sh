@@ -118,6 +118,34 @@ else
     fi
 fi
 
+[ -n "$NEW_URL" ] || fail "Could not find a fresh trycloudflare URL in logs."
+echo "URL found: $NEW_URL"
+
+# Update docker-compose.yml with the new URL
+if grep -q "WEBHOOK_URL=" "$COMPOSE_FILE"; then
+    # Update existing WEBHOOK_URL
+    sed -i "s|WEBHOOK_URL=.*|WEBHOOK_URL=$NEW_URL|" "$COMPOSE_FILE"
+else
+    # Add WEBHOOK_URL after the anchor line
+    if grep -qF "$ANCHOR_ENV_LINE" "$COMPOSE_FILE"; then
+        sed -i "/$ANCHOR_ENV_LINE/a\\    - WEBHOOK_URL=$NEW_URL" "$COMPOSE_FILE"
+    else
+        # If anchor not found, try to add it to the n8n service environment
+        if grep -q "  $N8N_SERVICE:" "$COMPOSE_FILE"; then
+            if grep -A1 "  $N8N_SERVICE:" "$COMPOSE_FILE" | grep -q "environment:"; then
+                # Environment section exists, add to it
+                sed -i "/  $N8N_SERVICE:/,/^  [a-zA-Z]/ {/environment:/a\\    - WEBHOOK_URL=$NEW_URL
+                }" "$COMPOSE_FILE"
+            else
+                # Add environment section
+                sed -i "/  $N8N_SERVICE:/a\\    environment:\n      - WEBHOOK_URL=$NEW_URL" "$COMPOSE_FILE"
+            fi
+        else
+            fail "Could not locate n8n service in docker-compose.yml"
+        fi
+    fi
+fi
+
 echo "Updated $COMPOSE_FILE with new webhook URL"
 
 # Restart n8n service
