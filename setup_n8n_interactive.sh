@@ -154,7 +154,7 @@ if [ -n "$DOMAIN" ]; then
   cat > "$COMPOSE_FILE" <<EOF
 services:
   traefik:
-    image: traefik:v3.1
+    image: traefik:latest
     command:
       - --providers.docker=true
       - --providers.docker.exposedbydefault=false
