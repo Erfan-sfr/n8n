@@ -101,7 +101,7 @@ sudo bash upgrade_n8n_to_domain.sh
 - Valid domain (optional)
 - Cloudflare account (for first script)
 
-### Method 1: Install with Cloudflare Tunnel (Recommended)
+### Method 1: Install with Cloudflare Tunnel 
 ```bash
 git clone https://github.com/Erfan-sfr/n8n.git
 cd n8n
